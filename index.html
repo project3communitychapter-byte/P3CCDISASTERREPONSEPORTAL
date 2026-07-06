@@ -24,7 +24,8 @@
         .tab-btn { background: var(--border-color); color: var(--button-text); border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.8em; }
         .content-tab { display: none; width: 100%; max-width: 500px; border: 2px solid var(--border-color); padding: 20px; border-radius: 10px; background: var(--container-bg); }
         .active { display: block; }
-        #map { height: 300px; width: 100%; border-radius: 10px; margin-top: 10px; }
+        #map { height: 60vh; width: 100%; border-radius: 10px; margin-top: 10px; border: 2px solid #D4AF37; }
+        #liveAlert { background: #8b0000; color: #fff; padding: 10px; border-radius: 5px; font-size: 0.85em; margin-bottom: 10px; display: none; text-align: center; font-weight: bold; }
         input, textarea, select { width: 100%; padding: 10px; margin-top: 5px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 5px; box-sizing: border-box; }
         button[type="submit"] { width: 100%; padding: 15px; margin-top: 20px; background: var(--button-bg); color: var(--button-text); border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
         .footer-text { text-align: center; margin-top: 20px; font-size: 0.8em; }
@@ -75,6 +76,7 @@
 
     <div id="tab2" class="content-tab">
         <h2>Live Hazard Map</h2>
+        <div id="liveAlert"></div>
         <div id="map"></div>
     </div>
 
@@ -111,27 +113,41 @@
         var map = L.map('map').setView([14.6760, 121.0437], 14);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzNlmoN_0dDB2JzGOPUX0EDlXYZFhUGYWk7glRKu1r_ueC3XWF56oRyug8PFVotMTOK/exec'; // ILAGAY DITO ANG URL NG DEPLOYED SCRIPT
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzNlmoN_0dDB2JzGOPUX0EDlXYZFhUGYWk7glRKu1r_ueC3XWF56oRyug8PFVotMTOK/exec';
+        let markerCache = {};
 
         function updateMarkers() {
             fetch(scriptURL)
                 .then(response => response.json())
                 .then(reports => {
                     map.eachLayer((layer) => { if (layer instanceof L.Marker) map.removeLayer(layer); });
+                    
+                    if (reports.length > 0) {
+                        const latest = reports[reports.length - 1];
+                        const alertDiv = document.getElementById('liveAlert');
+                        alertDiv.style.display = "block";
+                        alertDiv.innerHTML = `⚠️ LATEST: ${latest.reason} sa ${latest.address}`;
+                    }
+
                     reports.forEach(report => {
-                        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(report.address)}`)
-                            .then(res => res.json())
-                            .then(data => {
-                                if (data.length > 0) {
-                                    L.marker([data[0].lat, data[0].lon]).addTo(map)
-                                     .bindPopup(`<b>${report.name}</b><br>${report.reason}`);
-                                }
-                            });
+                        if (markerCache[report.address]) {
+                            L.marker(markerCache[report.address]).addTo(map).bindPopup(`<b>${report.name}</b><br>${report.reason}`);
+                        } else {
+                            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(report.address)}`)
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.length > 0) {
+                                        markerCache[report.address] = [data[0].lat, data[0].lon];
+                                        L.marker([data[0].lat, data[0].lon]).addTo(map).bindPopup(`<b>${report.name}</b><br>${report.reason}`);
+                                    }
+                                });
+                        }
                     });
                 });
         }
 
-        setInterval(updateMarkers, 60000); // Auto-update kada 1 minuto
+        setInterval(updateMarkers, 60000);
+        updateMarkers();
 
         ['eBayanihanForm', 'bloodForm'].forEach(id => {
             document.getElementById(id).addEventListener('submit', function(e) {
