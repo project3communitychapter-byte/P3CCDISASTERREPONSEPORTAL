@@ -5,51 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Bayanihan & Disaster Response Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { --bg-color: #121212; --container-bg: rgba(0, 0, 0, 0.85); --text-color: #D4AF37; --input-bg: #222; --border-color: #D4AF37; --button-bg: #D4AF37; --button-text: #000; }
         .light-mode { --bg-color: #f4f4f4; --container-bg: rgba(255, 255, 255, 0.9); --text-color: #333; --input-bg: #fff; --border-color: #333; --button-bg: #333; --button-text: #fff; }
         body { background-color: var(--bg-color); background-image: url('p3ccglow.jpg'); background-size: cover; background-position: center; background-attachment: fixed; color: var(--text-color); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; transition: 0.3s; }
+        
+        /* Layout */
         .top-container { width: 100%; max-width: 600px; text-align: center; margin-bottom: 20px; }
         .controls-wrapper { display: flex; justify-content: flex-end; margin-bottom: 5px; }
-        #liveDate { font-size: 0.9em; font-weight: bold; color: var(--text-color); padding: 5px; }
-        .gold-line { height: 2px; background: linear-gradient(to right, #000, #D4AF37, #000); width: 100%; margin-top: 5px; }
         .toggle-btn { background: var(--border-color); color: var(--button-text); border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.75em; font-weight: bold; }
+        #liveDate { font-size: 0.9em; font-weight: bold; color: var(--text-color); }
+        .gold-line { height: 2px; background: linear-gradient(to right, #000, #D4AF37, #000); width: 100%; margin-top: 5px; }
+        
         header { display: flex; justify-content: center; align-items: center; width: 100%; max-width: 700px; margin-bottom: 20px; gap: 10px; }
-        .logo-group { display: flex; gap: 5px; }
         .logo-small { width: 45px; height: 45px; object-fit: contain; }
-        h1 { margin: 0; font-size: 1.6em; letter-spacing: 1px; text-align: center; }
-        .hotline-box { width: 100%; max-width: 500px; border: 2px solid #D4AF37; padding: 15px; margin-bottom: 20px; border-radius: 10px; background: rgba(0, 0, 0, 0.9); text-align: center; color: #D4AF37; }
-        .hotline-title { font-weight: bold; margin-bottom: 8px; }
-        .hotline-item { margin: 3px 0; font-size: 1em; color: #fff; }
-        .tab-menu { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { background: var(--border-color); color: var(--button-text); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        h1 { margin: 0; font-size: 1.6em; }
+        
+        .hotline-box { width: 100%; max-width: 500px; border: 2px solid #D4AF37; padding: 15px; margin-bottom: 20px; border-radius: 10px; background: rgba(0, 0, 0, 0.9); text-align: center; }
+        .tab-menu { display: flex; justify-content: center; gap: 5px; margin-bottom: 20px; }
+        .tab-btn { background: var(--border-color); color: var(--button-text); border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.8em; }
+        
         .content-tab { display: none; width: 100%; max-width: 500px; border: 2px solid var(--border-color); padding: 20px; border-radius: 10px; background: var(--container-bg); }
         .active { display: block; }
-        h2 { text-align: center; color: var(--text-color); margin-top: 0; }
-        label { display: block; margin-top: 10px; font-weight: bold; }
-        input, textarea { width: 100%; padding: 10px; margin-top: 5px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 5px; box-sizing: border-box; }
+        
+        #map { height: 300px; width: 100%; border-radius: 10px; margin-top: 10px; }
+        input, textarea, select { width: 100%; padding: 10px; margin-top: 5px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 5px; box-sizing: border-box; }
         button[type="submit"] { width: 100%; padding: 15px; margin-top: 20px; background: var(--button-bg); color: var(--button-text); border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
-        .footer-text { text-align: center; margin-top: 20px; font-size: 0.8em; opacity: 0.9; }
-        .quote-line { border-top: 2px solid #D4AF37; border-bottom: 2px solid #D4AF37; padding: 10px 0; margin: 15px 0; font-style: italic; font-weight: bold; }
+        .footer-text { text-align: center; margin-top: 20px; font-size: 0.8em; }
+        .quote-line { border-top: 2px solid #D4AF37; border-bottom: 2px solid #D4AF37; padding: 10px 0; margin: 15px 0; font-style: italic; }
     </style>
 </head>
 <body>
+
     <div class="top-container">
-        <div class="controls-wrapper"> <button class="toggle-btn" onclick="document.body.classList.toggle('light-mode')">THEME</button> </div>
+        <div class="controls-wrapper"><button class="toggle-btn" onclick="document.body.classList.toggle('light-mode')">THEME</button></div>
         <div id="liveDate"></div>
         <div class="gold-line"></div>
     </div>
 
     <header>
-        <div class="logo-group"> <img src="tgp.png" alt="Logo" class="logo-small"><img src="quirinosec.jpg" alt="Logo" class="logo-small"> </div>
+        <img src="tgp.png" alt="Logo" class="logo-small"><img src="quirinosec.jpg" alt="Logo" class="logo-small">
         <h1>E-Bayanihan</h1>
-        <div class="logo-group"> <img src="quirino.jpg" alt="Logo" class="logo-small"><img src="p3cc.png" alt="Logo" class="logo-small"> </div>
+        <img src="quirino.jpg" alt="Logo" class="logo-small"><img src="p3cc.png" alt="Logo" class="logo-small">
     </header>
 
     <div class="hotline-box">
-        <div class="hotline-title"><i class="fas fa-phone-alt"></i> HOTLINE 24/7</div>
-        <div class="hotline-item">8911-5650 | 0905-4134-207</div>
-        <div class="hotline-item" style="font-weight: bold;">DIAL 122 - QC DRRMO</div>
+        <div style="font-weight:bold;"><i class="fas fa-phone-alt"></i> HOTLINE 24/7</div>
+        <div>8911-5650 | 0905-4134-207 | DIAL 122 - QC DRRMO</div>
     </div>
 
     <div class="tab-menu">
@@ -61,6 +64,7 @@
     <div id="tab1" class="content-tab active">
         <h2>Emergency Request</h2>
         <form id="eBayanihanForm">
+            <input type="hidden" name="formType" value="emergency">
             <label>Full Name</label><input type="text" name="name" required>
             <label>Alexis</label><input type="text" name="alexis" required>
             <label>T-Birth</label><input type="text" name="T-Birth" required>
@@ -73,54 +77,62 @@
         </form>
     </div>
 
-    <div id="tab2" class="content-tab"> <h2>Live Hazard Map</h2> <p style="text-align:center;">Dito ilalagay ang Live Map integration (Google Maps/Leaflet).</p> </div>
-    <div id="tab3" class="content-tab"> <h2>Blood Donation Registry</h2> <p style="text-align:center;">Listahan ng mga donors at mga nangangailangan ng dugo.</p> </div>
-
-    <div class="footer-text" style="width: 100%; max-width: 500px;">
-        <div class="quote-line">"A TRISKELION is a brother unto his fellow TRISKELION."</div>
-        <p>Fortis Voluntas Fraternitas</p>
-        <p>© 2026 developed by Tol Ron "Insan" Sarmenta</p>
+    <div id="tab2" class="content-tab">
+        <h2>Live Hazard Map</h2>
+        <div id="map"></div>
     </div>
 
+    <div id="tab3" class="content-tab">
+        <h2>Blood Registry</h2>
+        <form id="bloodForm">
+            <input type="hidden" name="formType" value="blood">
+            <label>Full Name</label><input type="text" name="name" required>
+            <label>Blood Type</label>
+            <select name="bloodType"><option>A+</option><option>B+</option><option>O+</option><option>AB+</option></select>
+            <label>Status</label>
+            <select name="status"><option value="Donor">Donor</option><option value="Need Donor">Need Donor</option></select>
+            <button type="submit">REGISTER</button>
+        </form>
+    </div>
+
+    <div class="footer-text">
+        <div class="quote-line">"A TRISKELION is a brother unto his fellow TRISKELION."</div>
+        <p>© 2026 E-Bayanihan Portal</p>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Form Submission Script
-        const scriptURL = 'ILAGAY_DITO_ANG_IYONG_WEB_APP_URL'; 
-        const form = document.getElementById('eBayanihanForm');
+        // Tab Function
+        function openTab(tabId) {
+            document.querySelectorAll('.content-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if(tabId === 'tab2') window.dispatchEvent(new Event('resize'));
+        }
 
-        form.addEventListener('submit', e => {
-            e.preventDefault();
-            const btn = form.querySelector('button[type="submit"]');
-            btn.innerText = "SINE-SEND...";
-            btn.disabled = true;
+        // Map Init
+        var map = L.map('map').setView([14.6760, 121.0437], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.marker([14.6760, 121.0437]).addTo(map).bindPopup("Command Center");
 
-            fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-                .then(response => {
-                    alert("Tagumpay! Naipadala na ang iyong request.");
-                    form.reset();
-                    btn.innerText = "SUBMIT REQUEST";
-                    btn.disabled = false;
-                })
-                .catch(error => {
-                    alert('Error! Subukan ulit.');
-                    btn.innerText = "SUBMIT REQUEST";
-                    btn.disabled = false;
-                })
+        // Form Handling
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzNlmoN_0dDB2JzGOPUX0EDlXYZFhUGYWk7glRKu1r_ueC3XWF56oRyug8PFVotMTOK/exec';
+        ['eBayanihanForm', 'bloodForm'].forEach(id => {
+            document.getElementById(id).addEventListener('submit', function(e) {
+                e.preventDefault();
+                const btn = this.querySelector('button');
+                btn.innerText = "SENDING...";
+                fetch(scriptURL, { method: 'POST', body: new FormData(this) })
+                    .then(() => { alert("Success!"); this.reset(); btn.innerText = "SUBMIT"; });
+            });
         });
 
-        // Time and Tab Logic
+        // Time
         function updateTime() {
             const now = new Date();
-            const dateStr = now.toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' });
-            const timeStr = now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-            document.getElementById('liveDate').innerText = `${dateStr} | ${timeStr}`;
+            document.getElementById('liveDate').innerText = now.toLocaleDateString('en-PH') + ' | ' + now.toLocaleTimeString('en-PH', {hour12:true});
         }
         setInterval(updateTime, 1000);
         updateTime();
-
-        function openTab(tabId) {
-            document.querySelectorAll('.content-tab').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-        }
     </script>
 </body>
 </html>
