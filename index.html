@@ -34,6 +34,7 @@
         button[type="submit"] { width: 100%; padding: 15px; margin-top: 20px; background: var(--button-bg); color: var(--button-text); border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
         .footer-text { text-align: center; margin-top: 20px; font-size: 0.8em; }
         .quote-line { border-top: 2px solid #D4AF37; border-bottom: 2px solid #D4AF37; padding: 10px 0; margin: 15px 0; font-style: italic; }
+        .dev-credit { margin-top: 10px; font-weight: bold; color: var(--text-color); opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -98,23 +99,21 @@
     <div class="footer-text">
         <div class="quote-line">"A TRISKELION is a brother unto his fellow TRISKELION."</div>
         <p>© 2026 E-Bayanihan Portal</p>
+        <div class="dev-credit">System developed by Tol Ron "INSAN" 2026</div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Tab Function
         function openTab(tabId) {
             document.querySelectorAll('.content-tab').forEach(t => t.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             if(tabId === 'tab2') window.dispatchEvent(new Event('resize'));
         }
 
-        // Map Init
         var map = L.map('map').setView([14.6760, 121.0437], 14);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         L.marker([14.6760, 121.0437]).addTo(map).bindPopup("Command Center");
 
-        // Form Handling
         const scriptURL = 'https://script.google.com/macros/s/AKfycbzNlmoN_0dDB2JzGOPUX0EDlXYZFhUGYWk7glRKu1r_ueC3XWF56oRyug8PFVotMTOK/exec';
         ['eBayanihanForm', 'bloodForm'].forEach(id => {
             document.getElementById(id).addEventListener('submit', function(e) {
@@ -126,7 +125,6 @@
             });
         });
 
-        // Time
         function updateTime() {
             const now = new Date();
             document.getElementById('liveDate').innerText = now.toLocaleDateString('en-PH') + ' | ' + now.toLocaleTimeString('en-PH', {hour12:true});
